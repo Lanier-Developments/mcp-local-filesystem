@@ -24,11 +24,19 @@ server.registerTool(
     description: 'Write content to a file on the local filesystem. Auto-creates parent directories.',
     inputSchema: {
       path: z.string().describe('Absolute path to the file to write'),
-      content: z.string().describe('Content to write to the file'),
+      content: z.string().optional().describe('Content to write to the file (canonical field)'),
+      file_text: z.string().optional().describe('Alias for content (client-compat); content takes precedence'),
     },
   },
-  async ({ path, content }) => {
-    const result = await writeFile(path, content, allowedDirs);
+  async ({ path, content, file_text }) => {
+    const body = content ?? file_text;
+    if (body === undefined) {
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify({ error: 'write_file requires "content" (or alias "file_text")' }, null, 2) }],
+        isError: true,
+      };
+    }
+    const result = await writeFile(path, body, allowedDirs);
     return {
       content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
     };
@@ -89,11 +97,19 @@ server.registerTool(
     description: 'Write base64-encoded content to a file as raw bytes on the local filesystem. Auto-creates parent directories. Use this for any file where byte-exact preservation matters: pdf, docx, pptx, xlsx, png, jpg, zip, or any compiled/encoded format. For plain text files (md, txt, json, ts, py), use write_file instead.',
     inputSchema: {
       path: z.string().describe('Absolute path to the file to write'),
-      content: z.string().describe('Base64-encoded binary content'),
+      content: z.string().optional().describe('Base64-encoded binary content (canonical field)'),
+      file_text: z.string().optional().describe('Alias for content (client-compat); content takes precedence'),
     },
   },
-  async ({ path, content }) => {
-    const result = await writeBinary(path, content, allowedDirs);
+  async ({ path, content, file_text }) => {
+    const body = content ?? file_text;
+    if (body === undefined) {
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify({ error: 'write_binary requires "content" (or alias "file_text")' }, null, 2) }],
+        isError: true,
+      };
+    }
+    const result = await writeBinary(path, body, allowedDirs);
     return {
       content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
     };

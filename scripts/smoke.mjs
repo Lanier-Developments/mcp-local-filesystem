@@ -78,14 +78,45 @@ try {
   if (init.error) throw new Error('init: ' + JSON.stringify(init.error));
   proc.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
 
-  // 1. write_file
+  // 1. write_file — content only (canonical, historical callers)
   {
     const resp = await callTool('write_file', { path: PROBE, content: 'ok' });
     const r = parseResult(resp, 'write_file');
-    const content = await readFile(PROBE, 'utf8');
-    const ok = r.success === true && content === 'ok';
-    record('write_file', ok, ok ? `wrote "${content}"` : `success=${r.success} content="${content}"`);
+    const onDisk = await readFile(PROBE, 'utf8');
+    const ok = r.success === true && onDisk === 'ok';
+    record('write_file content-only', ok, ok ? `wrote "${onDisk}"` : `success=${r.success} onDisk="${onDisk}"`);
     await unlink(PROBE);
+  }
+
+  // 1b. write_file — file_text only (claude.ai client uses this alias)
+  {
+    const resp = await callTool('write_file', { path: PROBE, file_text: 'via-alias' });
+    const r = parseResult(resp, 'write_file file_text alias');
+    const onDisk = await readFile(PROBE, 'utf8');
+    const ok = r.success === true && onDisk === 'via-alias';
+    record('write_file file_text-only', ok, ok ? `wrote "${onDisk}"` : `success=${r.success} onDisk="${onDisk}"`);
+    await unlink(PROBE);
+  }
+
+  // 1c. write_file — both set, content wins (precedence rule)
+  {
+    const resp = await callTool('write_file', { path: PROBE, content: 'winner', file_text: 'loser' });
+    const r = parseResult(resp, 'write_file both');
+    const onDisk = await readFile(PROBE, 'utf8');
+    const ok = r.success === true && onDisk === 'winner';
+    record('write_file content-wins-over-file_text', ok, ok ? `wrote "${onDisk}"` : `onDisk="${onDisk}"`);
+    await unlink(PROBE);
+  }
+
+  // 1d. write_file — neither set, clean error (no crash)
+  {
+    const resp = await callTool('write_file', { path: PROBE });
+    const r = parseResult(resp, 'write_file neither');
+    const isError = resp.result?.isError === true;
+    const onDisk = existsSync(PROBE);
+    const ok = isError && typeof r.error === 'string' && r.error.includes('content') && !onDisk;
+    record('write_file neither-set → clean error', ok, ok ? `error: "${r.error}"` : `isError=${isError} r=${JSON.stringify(r)} fileExists=${onDisk}`);
+    if (onDisk) await unlink(PROBE);
   }
 
   // 2. str_replace
@@ -99,7 +130,7 @@ try {
     await unlink(STR_TMP);
   }
 
-  // 3. write_binary + read_binary round-trip
+  // 3. write_binary + read_binary round-trip — content (canonical)
   {
     const payload = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]); // PNG magic
     const b64 = payload.toString('base64');
@@ -109,8 +140,46 @@ try {
     const rR = parseResult(rResp, 'read_binary');
     const got = Buffer.from(rR.content, 'base64');
     const ok = wR.success === true && got.equals(payload);
-    record('write_binary+read_binary round-trip', ok, ok ? `${payload.length}B match` : `wR=${JSON.stringify(wR)} got=${got.toString('hex')}`);
+    record('write_binary+read_binary content-only', ok, ok ? `${payload.length}B match` : `wR=${JSON.stringify(wR)} got=${got.toString('hex')}`);
     await unlink(BIN_TMP);
+  }
+
+  // 3b. write_binary — file_text alias
+  {
+    const payload = Buffer.from([0xff, 0xd8, 0xff, 0xe0]); // JPEG-ish magic
+    const b64 = payload.toString('base64');
+    const wResp = await callTool('write_binary', { path: BIN_TMP, file_text: b64 });
+    const wR = parseResult(wResp, 'write_binary file_text');
+    const rResp = await callTool('read_binary', { path: BIN_TMP });
+    const rR = parseResult(rResp, 'read_binary');
+    const got = Buffer.from(rR.content, 'base64');
+    const ok = wR.success === true && got.equals(payload);
+    record('write_binary file_text-only', ok, ok ? `${payload.length}B match` : `wR=${JSON.stringify(wR)}`);
+    await unlink(BIN_TMP);
+  }
+
+  // 3c. write_binary — both set, content wins
+  {
+    const winner = Buffer.from([0x01, 0x02, 0x03]).toString('base64');
+    const loser = Buffer.from([0xaa, 0xbb, 0xcc]).toString('base64');
+    const wResp = await callTool('write_binary', { path: BIN_TMP, content: winner, file_text: loser });
+    const wR = parseResult(wResp, 'write_binary both');
+    const rResp = await callTool('read_binary', { path: BIN_TMP });
+    const rR = parseResult(rResp, 'read_binary');
+    const ok = wR.success === true && rR.content === winner;
+    record('write_binary content-wins-over-file_text', ok, ok ? 'winner bytes returned' : `got=${rR.content} expected=${winner}`);
+    await unlink(BIN_TMP);
+  }
+
+  // 3d. write_binary — neither set, clean error
+  {
+    const resp = await callTool('write_binary', { path: BIN_TMP });
+    const r = parseResult(resp, 'write_binary neither');
+    const isError = resp.result?.isError === true;
+    const onDisk = existsSync(BIN_TMP);
+    const ok = isError && typeof r.error === 'string' && r.error.includes('content') && !onDisk;
+    record('write_binary neither-set → clean error', ok, ok ? `error: "${r.error}"` : `isError=${isError} r=${JSON.stringify(r)} fileExists=${onDisk}`);
+    if (onDisk) await unlink(BIN_TMP);
   }
 
   // 4. read_file regression
