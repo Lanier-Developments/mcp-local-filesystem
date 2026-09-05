@@ -1,0 +1,6 @@
+{
+  "all": true,
+  "src": "src",
+  "reporter": ["text", "lcov"],
+  "exclude": ["tests/**", "jest.config.js"]
+}

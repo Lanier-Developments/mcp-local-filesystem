@@ -8,6 +8,7 @@
     "dev": "tsc --watch",
     "pretest": "tsc",
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "coverage": "c8 npm test",
     "inspector": "npx @modelcontextprotocol/inspector node dist/index.js"
   },
   "keywords": [
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^26.4.0",
+    "c8": "^12.0.0",
     "jest": "^30.5.1",
     "ts-jest": "^29.4.12",
     "typescript": "^6.0.3"
