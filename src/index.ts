@@ -18,26 +18,38 @@ const server = new McpServer({
   version: '1.1.0',
 });
 
-server.tool(
+server.registerTool(
   'write_file',
-  'Write content to a file on the local filesystem. Auto-creates parent directories.',
   {
-    path: z.string().describe('Absolute path to the file to write'),
-    content: z.string().describe('Content to write to the file'),
+    description: 'Write content to a file on the local filesystem. Auto-creates parent directories.',
+    inputSchema: {
+      path: z.string().describe('Absolute path to the file to write'),
+      content: z.string().optional().describe('Content to write to the file (canonical field)'),
+      file_text: z.string().optional().describe('Alias for content (client-compat); content takes precedence'),
+    },
   },
-  async ({ path, content }) => {
-    const result = await writeFile(path, content, allowedDirs);
+  async ({ path, content, file_text }) => {
+    const body = content ?? file_text;
+    if (body === undefined) {
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify({ error: 'write_file requires "content" (or alias "file_text")' }, null, 2) }],
+        isError: true,
+      };
+    }
+    const result = await writeFile(path, body, allowedDirs);
     return {
       content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
     };
   }
 );
 
-server.tool(
+server.registerTool(
   'read_file',
-  'Read the content of a file from the local filesystem.',
   {
-    path: z.string().describe('Absolute path to the file to read'),
+    description: 'Read the content of a file from the local filesystem.',
+    inputSchema: {
+      path: z.string().describe('Absolute path to the file to read'),
+    },
   },
   async ({ path }) => {
     const result = await readFile(path, allowedDirs);
@@ -47,11 +59,13 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   'list_directory',
-  'List the contents of a directory on the local filesystem.',
   {
-    path: z.string().describe('Absolute path to the directory to list'),
+    description: 'List the contents of a directory on the local filesystem.',
+    inputSchema: {
+      path: z.string().describe('Absolute path to the directory to list'),
+    },
   },
   async ({ path }) => {
     const result = await listDirectory(path, allowedDirs);
@@ -61,11 +75,13 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   'check_allowed',
-  'Check if a path is within the allowed directories. Does not require the path to exist.',
   {
-    path: z.string().describe('Path to check'),
+    description: 'Check if a path is within the allowed directories. Does not require the path to exist.',
+    inputSchema: {
+      path: z.string().describe('Path to check'),
+    },
   },
   async ({ path }) => {
     const result = checkAllowed(path, allowedDirs);
@@ -75,26 +91,38 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   'write_binary',
-  'Write base64-encoded content to a file as raw bytes on the local filesystem. Auto-creates parent directories. Use this for any file where byte-exact preservation matters: pdf, docx, pptx, xlsx, png, jpg, zip, or any compiled/encoded format. For plain text files (md, txt, json, ts, py), use write_file instead.',
   {
-    path: z.string().describe('Absolute path to the file to write'),
-    content: z.string().describe('Base64-encoded binary content'),
+    description: 'Write base64-encoded content to a file as raw bytes on the local filesystem. Auto-creates parent directories. Use this for any file where byte-exact preservation matters: pdf, docx, pptx, xlsx, png, jpg, zip, or any compiled/encoded format. For plain text files (md, txt, json, ts, py), use write_file instead.',
+    inputSchema: {
+      path: z.string().describe('Absolute path to the file to write'),
+      content: z.string().optional().describe('Base64-encoded binary content (canonical field)'),
+      file_text: z.string().optional().describe('Alias for content (client-compat); content takes precedence'),
+    },
   },
-  async ({ path, content }) => {
-    const result = await writeBinary(path, content, allowedDirs);
+  async ({ path, content, file_text }) => {
+    const body = content ?? file_text;
+    if (body === undefined) {
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify({ error: 'write_binary requires "content" (or alias "file_text")' }, null, 2) }],
+        isError: true,
+      };
+    }
+    const result = await writeBinary(path, body, allowedDirs);
     return {
       content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
     };
   }
 );
 
-server.tool(
+server.registerTool(
   'read_binary',
-  'Read a file from the local filesystem and return its content as base64-encoded bytes. Use this for any file where byte-exact preservation matters: pdf, docx, pptx, xlsx, png, jpg, zip, or any compiled/encoded format. For plain text files (md, txt, json, ts, py), use read_file instead.',
   {
-    path: z.string().describe('Absolute path to the file to read'),
+    description: 'Read a file from the local filesystem and return its content as base64-encoded bytes. Use this for any file where byte-exact preservation matters: pdf, docx, pptx, xlsx, png, jpg, zip, or any compiled/encoded format. For plain text files (md, txt, json, ts, py), use read_file instead.',
+    inputSchema: {
+      path: z.string().describe('Absolute path to the file to read'),
+    },
   },
   async ({ path }) => {
     const result = await readBinary(path, allowedDirs);
@@ -104,14 +132,16 @@ server.tool(
   }
 );
 
-server.tool(
+server.registerTool(
   'str_replace',
-  'Replace a single, unique occurrence of old_str with new_str in a UTF-8 text file. Errors if old_str is not found, or if it matches more than once (add surrounding context to disambiguate). Use this for partial edits when rewriting the whole file with write_file would be wasteful. For binary files, use write_binary.',
   {
-    path: z.string().describe('Absolute path to the file to edit'),
-    old_str: z.string().describe('Exact substring to find — must match verbatim and uniquely'),
-    new_str: z.string().describe('Replacement text. Empty string deletes the match.'),
-    description: z.string().optional().describe('Optional human-readable reason for the edit, for logging'),
+    description: 'Replace a single, unique occurrence of old_str with new_str in a UTF-8 text file. Errors if old_str is not found, or if it matches more than once (add surrounding context to disambiguate). Use this for partial edits when rewriting the whole file with write_file would be wasteful. For binary files, use write_binary.',
+    inputSchema: {
+      path: z.string().describe('Absolute path to the file to edit'),
+      old_str: z.string().describe('Exact substring to find — must match verbatim and uniquely'),
+      new_str: z.string().describe('Replacement text. Empty string deletes the match.'),
+      description: z.string().optional().describe('Optional human-readable reason for the edit, for logging'),
+    },
   },
   async ({ path, old_str, new_str, description }) => {
     const result = await strReplace(path, old_str, new_str, allowedDirs, description);
