@@ -159,6 +159,12 @@ async function main(): Promise<void> {
   await server.connect(transport);
 }
 
+// Explicit process.exit() on signal (rather than the default uncaught-signal
+// termination) so Node flushes NODE_V8_COVERAGE on shutdown — matters for
+// tests/index.integration.test.ts, which kills this process between cases.
+process.on('SIGTERM', () => process.exit(0));
+process.on('SIGINT', () => process.exit(0));
+
 main().catch((err) => {
   console.error('Fatal error starting MCP server:', err);
   process.exit(1);
