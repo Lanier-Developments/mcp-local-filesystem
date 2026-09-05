@@ -32,7 +32,7 @@ One command. Zero friction. Files land exactly where they belong.
 ### 1. Clone and build
 
 ```bash
-git clone https://github.com/kmcallorum/mcp-local-filesystem.git
+git clone https://github.com/Lanier-Developments/mcp-local-filesystem.git
 cd mcp-local-filesystem
 npm install
 npm run build
