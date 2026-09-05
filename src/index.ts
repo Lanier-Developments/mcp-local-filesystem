@@ -10,7 +10,10 @@ import { readBinary } from './tools/read-binary.js';
 import { writeBinary } from './tools/write-binary.js';
 import { strReplace } from './tools/str-replace.js';
 
-const config = loadConfig();
+// MCP_FS_CONFIG_PATH overrides the default config.json location; used by
+// tests/index.integration.test.ts to point the server at a sandboxed config
+// without touching the real one. Unset in normal use.
+const config = loadConfig(process.env.MCP_FS_CONFIG_PATH);
 const allowedDirs = config.allowedDirectories;
 
 const server = new McpServer({

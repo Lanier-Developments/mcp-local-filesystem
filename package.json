@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
+    "pretest": "tsc",
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "inspector": "npx @modelcontextprotocol/inspector node dist/index.js"
   },
