@@ -129,6 +129,38 @@ describe('list_directory', () => {
   });
 });
 
+describe('symlink escape (sandbox-defeating)', () => {
+  let outsideDir: string;
+
+  beforeEach(() => {
+    outsideDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-outside-'));
+    fs.writeFileSync(path.join(outsideDir, 'secret.txt'), 'top secret contents');
+  });
+
+  afterEach(() => {
+    fs.rmSync(outsideDir, { recursive: true, force: true });
+  });
+
+  it('read_file refuses to follow a symlink out of the sandbox', async () => {
+    fs.symlinkSync(outsideDir, path.join(tmpDir, 'escape'));
+
+    const result = await readFile(path.join(tmpDir, 'escape', 'secret.txt'), allowed);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('Access denied');
+  });
+
+  it('write_file refuses to follow a symlink and write outside the sandbox', async () => {
+    fs.symlinkSync(outsideDir, path.join(tmpDir, 'escape'));
+
+    const result = await writeFile(path.join(tmpDir, 'escape', 'pwned.txt'), 'pwned', allowed);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('Access denied');
+    expect(fs.existsSync(path.join(outsideDir, 'pwned.txt'))).toBe(false);
+  });
+});
+
 describe('check_allowed', () => {
   it('returns allowed=true for paths inside allowed directories', () => {
     const result = checkAllowed(path.join(tmpDir, 'anything.txt'), allowed);

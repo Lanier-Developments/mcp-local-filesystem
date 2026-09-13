@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
-import { loadConfig, normalizePath, isPathAllowed, validatePath } from '../src/config';
+import { loadConfig, normalizePath, isPathAllowed, validatePath, resolveRealPath } from '../src/config';
 
 describe('normalizePath', () => {
   it('resolves relative paths to absolute', () => {
@@ -60,6 +60,65 @@ describe('isPathAllowed', () => {
 
   it('allows second allowed directory', () => {
     expect(isPathAllowed('/Users/test/Development/app.js', allowed)).toBe(true);
+  });
+});
+
+describe('symlink escape (sandbox-defeating)', () => {
+  let sandbox: string;
+  let outside: string;
+
+  beforeEach(() => {
+    const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-symlink-test-'));
+    sandbox = fs.realpathSync(fs.mkdtempSync(path.join(base, 'sandbox-')));
+    outside = fs.realpathSync(fs.mkdtempSync(path.join(base, 'outside-')));
+    fs.writeFileSync(path.join(outside, 'secret.txt'), 'top secret');
+  });
+
+  afterEach(() => {
+    fs.rmSync(path.dirname(sandbox), { recursive: true, force: true });
+  });
+
+  it('resolveRealPath follows a symlink inside the sandbox to its true (outside) target', () => {
+    const link = path.join(sandbox, 'escape');
+    fs.symlinkSync(outside, link);
+
+    const real = resolveRealPath(path.join(link, 'secret.txt'));
+    expect(real).toBe(path.join(outside, 'secret.txt'));
+  });
+
+  it('isPathAllowed rejects a path that traverses a symlink pointing outside the allowed directory', () => {
+    const link = path.join(sandbox, 'escape');
+    fs.symlinkSync(outside, link);
+
+    // The raw string still looks like it's inside the sandbox...
+    const lexicallyInside = path.join(sandbox, 'escape', 'secret.txt');
+    expect(lexicallyInside.startsWith(sandbox + path.sep)).toBe(true);
+
+    // ...but it must be rejected because it really resolves outside it.
+    expect(isPathAllowed(lexicallyInside, [sandbox])).toBe(false);
+  });
+
+  it('validatePath throws for a path that escapes the sandbox via a symlink', () => {
+    fs.symlinkSync(outside, path.join(sandbox, 'escape'));
+    const target = path.join(sandbox, 'escape', 'secret.txt');
+
+    expect(() => validatePath(target, [sandbox])).toThrow('Access denied');
+  });
+
+  it('still allows a symlink whose target stays inside the allowed directory', () => {
+    const realDir = path.join(sandbox, 'real');
+    fs.mkdirSync(realDir);
+    fs.writeFileSync(path.join(realDir, 'file.txt'), 'fine');
+    fs.symlinkSync(realDir, path.join(sandbox, 'internal-link'));
+
+    const target = path.join(sandbox, 'internal-link', 'file.txt');
+    expect(isPathAllowed(target, [sandbox])).toBe(true);
+    expect(() => validatePath(target, [sandbox])).not.toThrow();
+  });
+
+  it('still resolves a not-yet-created path (e.g. a new file) inside the sandbox', () => {
+    const target = path.join(sandbox, 'brand-new-file.txt');
+    expect(isPathAllowed(target, [sandbox])).toBe(true);
   });
 });
 
