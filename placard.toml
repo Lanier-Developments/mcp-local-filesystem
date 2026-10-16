@@ -1,0 +1,12 @@
+# Placard gate for this repository's own MCP server.
+# The committed baseline is the approval record: a change to the tool surface
+# fails CI until the new manifest is committed (placard baseline, run locally).
+
+[defaults]
+ceiling = "R4"
+baseline_dir = ".placard/baselines"
+
+[[server]]
+name = "local-filesystem"
+target = "node dist/index.js"
+env = ["MCP_FS_CONFIG_PATH"]
