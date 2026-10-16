@@ -1,0 +1,351 @@
+{
+  "capabilities": {
+    "tools": {
+      "listChanged": true
+    }
+  },
+  "capabilities_hash": "46f63fd549bb6c2798199069f8f6ed94023dd8adca19f886f85548b0ed21ae06",
+  "classification": [
+    {
+      "citations": [
+        {
+          "evidence": "unconstrained free-text parameter present; R0 requires a closed input surface",
+          "rule": "Rule B",
+          "signal": "schema_shape",
+          "tier": "R1"
+        }
+      ],
+      "disagreements": [],
+      "tier": "R1",
+      "tool": "check_allowed"
+    },
+    {
+      "citations": [
+        {
+          "evidence": "unconstrained free-text parameter present; R0 requires a closed input surface",
+          "rule": "Rule B",
+          "signal": "schema_shape",
+          "tier": "R1"
+        }
+      ],
+      "disagreements": [],
+      "tier": "R1",
+      "tool": "list_directory"
+    },
+    {
+      "citations": [
+        {
+          "evidence": "unconstrained free-text parameter present; R0 requires a closed input surface",
+          "rule": "Rule B",
+          "signal": "schema_shape",
+          "tier": "R1"
+        }
+      ],
+      "disagreements": [],
+      "tier": "R1",
+      "tool": "read_binary"
+    },
+    {
+      "citations": [
+        {
+          "evidence": "unconstrained free-text parameter present; R0 requires a closed input surface",
+          "rule": "Rule B",
+          "signal": "schema_shape",
+          "tier": "R1"
+        }
+      ],
+      "disagreements": [],
+      "tier": "R1",
+      "tool": "read_file"
+    },
+    {
+      "citations": [
+        {
+          "evidence": "unconstrained free-text parameter present; R0 requires a closed input surface",
+          "rule": "Rule B",
+          "signal": "schema_shape",
+          "tier": "R1"
+        }
+      ],
+      "disagreements": [],
+      "tier": "R1",
+      "tool": "str_replace"
+    },
+    {
+      "citations": [
+        {
+          "evidence": "/properties/path: unconstrained destination path with content-carrying sibling 'content', no concurrency token present anywhere in the schema",
+          "kinds": [
+            "write"
+          ],
+          "rule": "Rule D",
+          "signal": "schema_shape",
+          "tier": "R5"
+        },
+        {
+          "evidence": "/properties/content: content-carrying field 'content'",
+          "kinds": [
+            "write"
+          ],
+          "signal": "schema_shape",
+          "tier": "R1"
+        },
+        {
+          "evidence": "tool name 'write_binary': 'write' verb, corroborating only",
+          "kinds": [
+            "write"
+          ],
+          "signal": "tool_name_verb",
+          "tier": "R3"
+        }
+      ],
+      "disagreements": [],
+      "kinds": [
+        "write"
+      ],
+      "reversibility": "unverifiable",
+      "tier": "R5",
+      "tool": "write_binary"
+    },
+    {
+      "citations": [
+        {
+          "evidence": "/properties/path: unconstrained destination path with content-carrying sibling 'content', no concurrency token present anywhere in the schema",
+          "kinds": [
+            "write"
+          ],
+          "rule": "Rule D",
+          "signal": "schema_shape",
+          "tier": "R5"
+        },
+        {
+          "evidence": "/properties/content: content-carrying field 'content'",
+          "kinds": [
+            "write"
+          ],
+          "signal": "schema_shape",
+          "tier": "R1"
+        },
+        {
+          "evidence": "tool name 'write_file': 'write' verb, corroborating only",
+          "kinds": [
+            "write"
+          ],
+          "signal": "tool_name_verb",
+          "tier": "R3"
+        }
+      ],
+      "disagreements": [],
+      "kinds": [
+        "write"
+      ],
+      "reversibility": "unverifiable",
+      "tier": "R5",
+      "tool": "write_file"
+    }
+  ],
+  "classification_hash": "da64344d69af5a53a2880551723a2f96a2bd83585fdb97afcd9e49a51f7b9c70",
+  "environment": {
+    "protocol_version": "2025-11-25",
+    "sdk_version": "2.3.0"
+  },
+  "findings": [],
+  "manifest_version": "2.2",
+  "ruleset_version": "3.6",
+  "surface": {
+    "prompts": [],
+    "resource_templates": [],
+    "resources": [],
+    "server": {
+      "name": "local-filesystem",
+      "version": "1.1.0"
+    },
+    "tools": [
+      {
+        "description": "Check if a path is within the allowed directories. Does not require the path to exist.",
+        "description_hash": "03414aff69170283fe3045ddf94ced19282a68d81d667368be90ad199246cd80",
+        "execution": {
+          "taskSupport": "forbidden"
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "properties": {
+            "path": {
+              "description": "Path to check",
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "name": "check_allowed",
+        "schema_hash": "7884362b6b09ba2e0da79fc49d72691c90f303ec0387c61b9dde087e1db6b8ce"
+      },
+      {
+        "description": "List the contents of a directory on the local filesystem.",
+        "description_hash": "1fbe25f6bbec37c6b30b83ac11541b84532633917568a11da97d7d5b258fa4ff",
+        "execution": {
+          "taskSupport": "forbidden"
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "properties": {
+            "path": {
+              "description": "Absolute path to the directory to list",
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "name": "list_directory",
+        "schema_hash": "d8fc0f1bda501c90ef60323ecf1dad8ece83b0acb58627c28cc1b852deee0b7e"
+      },
+      {
+        "description": "Read a file from the local filesystem and return its content as base64-encoded bytes. Use this for any file where byte-exact preservation matters: pdf, docx, pptx, xlsx, png, jpg, zip, or any compiled/encoded format. For plain text files (md, txt, json, ts, py), use read_file instead.",
+        "description_hash": "30b23ec1e9d9b55c85699c1f6232eb35fa2573fcadb99d25e8e80bf513e2f735",
+        "execution": {
+          "taskSupport": "forbidden"
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "properties": {
+            "path": {
+              "description": "Absolute path to the file to read",
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "name": "read_binary",
+        "schema_hash": "38acfdf541d7bbd1e1770e13192545378d330e0a912442e1f1931462170bfc34"
+      },
+      {
+        "description": "Read the content of a file from the local filesystem.",
+        "description_hash": "3360bbb81cc3fc295fe4e641178cc8d495e1dedf7c90945876b93fe7e6efc72e",
+        "execution": {
+          "taskSupport": "forbidden"
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "properties": {
+            "path": {
+              "description": "Absolute path to the file to read",
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "name": "read_file",
+        "schema_hash": "38acfdf541d7bbd1e1770e13192545378d330e0a912442e1f1931462170bfc34"
+      },
+      {
+        "description": "Replace a single, unique occurrence of old_str with new_str in a UTF-8 text file. Errors if old_str is not found, or if it matches more than once (add surrounding context to disambiguate). Use this for partial edits when rewriting the whole file with write_file would be wasteful. For binary files, use write_binary.",
+        "description_hash": "d6590056cf48a8725155fa571af3d0f364fb78bada06adf0ce7cc44d96a68951",
+        "execution": {
+          "taskSupport": "forbidden"
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "properties": {
+            "description": {
+              "description": "Optional human-readable reason for the edit, for logging",
+              "type": "string"
+            },
+            "new_str": {
+              "description": "Replacement text. Empty string deletes the match.",
+              "type": "string"
+            },
+            "old_str": {
+              "description": "Exact substring to find — must match verbatim and uniquely",
+              "type": "string"
+            },
+            "path": {
+              "description": "Absolute path to the file to edit",
+              "type": "string"
+            }
+          },
+          "required": [
+            "path",
+            "old_str",
+            "new_str"
+          ],
+          "type": "object"
+        },
+        "name": "str_replace",
+        "schema_hash": "5864c5d62ac678c64253b723718d1b08174c9794b32ce51b861b22fa7a4b257e"
+      },
+      {
+        "description": "Write base64-encoded content to a file as raw bytes on the local filesystem. Auto-creates parent directories. Use this for any file where byte-exact preservation matters: pdf, docx, pptx, xlsx, png, jpg, zip, or any compiled/encoded format. For plain text files (md, txt, json, ts, py), use write_file instead.",
+        "description_hash": "02ff94ae6b32ad5b476ab95f6c123b0f04f786d3f7804345c71c6183e795ec91",
+        "execution": {
+          "taskSupport": "forbidden"
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "properties": {
+            "content": {
+              "description": "Base64-encoded binary content (canonical field)",
+              "type": "string"
+            },
+            "file_text": {
+              "description": "Alias for content (client-compat); content takes precedence",
+              "type": "string"
+            },
+            "path": {
+              "description": "Absolute path to the file to write",
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "name": "write_binary",
+        "schema_hash": "d251d05a2a27275ec777050f20799d4b72f4fe651d27ec67485d05537fb813c4"
+      },
+      {
+        "description": "Write content to a file on the local filesystem. Auto-creates parent directories.",
+        "description_hash": "4bd35ff2d9d46ec97dfe5d0d879ce88a7c7a31cc18cb4e7f88aa1efc0af494a6",
+        "execution": {
+          "taskSupport": "forbidden"
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "properties": {
+            "content": {
+              "description": "Content to write to the file (canonical field)",
+              "type": "string"
+            },
+            "file_text": {
+              "description": "Alias for content (client-compat); content takes precedence",
+              "type": "string"
+            },
+            "path": {
+              "description": "Absolute path to the file to write",
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "name": "write_file",
+        "schema_hash": "4fe8cf01204088c112524321c61e557f845efac2f966050fdb931a7bbee84b83"
+      }
+    ]
+  },
+  "surface_hash": "1ea66b50fcd7bba489ff166c115109d590019b5cb66e460c929774d442ccf4e4"
+}
