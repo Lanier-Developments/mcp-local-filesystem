@@ -28,8 +28,8 @@ jobs:
     - name: Build
       run: npm run build
     - name: Placard
-      # Pinned by commit SHA (mcp-placard main, ruleset 3.7), never by tag.
-      uses: Lanier-Developments/mcp-placard@622752cb48a0862755cabe7b56ae1d1c16864281
+      # Pinned by commit SHA (mcp-placard v0.8.0 main, ruleset 3.7), never by tag.
+      uses: Lanier-Developments/mcp-placard@378f7a7e6d78f7ec5a697b49028e987e972101ea
       env:
         MCP_FS_CONFIG_PATH: ${{ github.workspace }}/ci-config.json
       with:
