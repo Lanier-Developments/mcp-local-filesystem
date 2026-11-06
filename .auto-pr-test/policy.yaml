@@ -9,7 +9,7 @@ classification: public
 # Concurrence needs at least `min_families` distinct model families to agree.
 reviewers:
   - bedrock/claude-sonnet-4-6
-  - gemini/gemini-2.5-pro
+  - gemini/gemini-3.1-pro-preview
 min_families: 2
 
 # Risk tiers. A PR takes the HIGHEST tier of any file it touches.
