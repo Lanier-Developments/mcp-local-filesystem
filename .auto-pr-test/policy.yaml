@@ -1,0 +1,64 @@
+# auto-pr-test repository policy for mcp-local-filesystem.
+# Lives in the repo it governs, reviewed like code.
+
+version: 1
+
+# Public repository; routing rules decide which models may read it.
+classification: public
+
+# Concurrence needs at least `min_families` distinct model families to agree.
+reviewers:
+  - bedrock/claude-sonnet-4-6
+  - gemini/gemini-2.5-pro
+min_families: 2
+
+# Risk tiers. A PR takes the HIGHEST tier of any file it touches.
+tiers:
+  low:
+    action: auto_approve
+    paths:
+      - "**/*.md"
+  medium:
+    action: recommend
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - "package-lock.json"
+  high:
+    action: human_required
+    paths:
+      - ".auto-pr-test/**"           # the policy itself
+      - ".github/workflows/**"
+      - ".placard/**"                # Placard baselines — the MCP surface gate
+      - "placard.toml"
+      - "ci-config.json"
+      - "config.json"                # MCP server config — blast radius
+      - "package.json"
+      - "tsconfig.json"
+      - "jest.config.js"
+default_tier: medium
+
+# Unanimous no-finding approval on a high tier is a flag, not a pass.
+fast_agreement_tiers: [high]
+
+# Testing. The suite must pass; changed-line coverage measurement is
+# pytest-cov JSON today, so it is off for this TypeScript repo until
+# auto-pr-test grows a c8/istanbul adapter.
+testing:
+  command: "npm test"
+  require_pass: true
+
+# Hard blocks — any match fails the gate regardless of review outcome.
+blocks:
+  secrets: true
+  max_changed_lines: 2000
+  forbidden_paths:
+    - ".env"
+    - "**/*.pem"
+    - "**/id_rsa*"
+
+# Evidence ledger: digests only, never content.
+ledger:
+  path: ".auto-pr-test/ledger.jsonl"
+  store_digests_only: true
