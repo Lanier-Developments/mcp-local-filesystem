@@ -24,6 +24,9 @@ tiers:
       - "src/**"
       - "tests/**"
       - "scripts/**"
+      # Deliberately medium, not high: lockfile code executes only in the
+      # secret-free Build & Test job (the gate job runs no PR code), and
+      # in-range Dependabot bumps are this pipeline's main hands-off case.
       - "package-lock.json"
   high:
     action: human_required
@@ -42,7 +45,9 @@ default_tier: medium
 # Unanimous no-finding approval on a high tier is a flag, not a pass.
 fast_agreement_tiers: [high]
 
-# Testing. The suite must pass; changed-line coverage measurement is
+# Testing. The gate job carries model credentials, so it never executes PR
+# code: the workflow passes skip-tests and the required "Build & Test" check
+# (a secret-free job) is what enforces the suite. Changed-line coverage is
 # pytest-cov JSON today, so it is off for this TypeScript repo until
 # auto-pr-test grows a c8/istanbul adapter.
 testing:

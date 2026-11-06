@@ -22,18 +22,14 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v7
-    - name: Set up Node
-      uses: actions/setup-node@v7
-      with:
-        node-version: '26'
-        cache: 'npm'
-    - name: Install dependencies
-      run: npm ci
-    - name: Build
-      run: npm run build
     - name: auto-pr-test
       # Pinned by commit SHA (auto-pr-test main), never by tag.
+      # skip-tests: this job holds model credentials, so it must execute no code
+      # from the PR — no npm ci/build/test here. Tests are enforced by the
+      # required "Build & Test" check, which runs in a job with no secrets.
       uses: Lanier-Developments/auto-pr-test@b8d2764e83a100b00a194f1d007d5a13569cf3c6
+      with:
+        skip-tests: "true"
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
