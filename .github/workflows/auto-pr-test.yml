@@ -33,7 +33,7 @@ jobs:
       run: npm run build
     - name: auto-pr-test
       # Pinned by commit SHA (auto-pr-test main), never by tag.
-      uses: Lanier-Developments/auto-pr-test@18ec496dd72feb6bf2a4dfdec3a3dd8a288508c5
+      uses: Lanier-Developments/auto-pr-test@b8d2764e83a100b00a194f1d007d5a13569cf3c6
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
