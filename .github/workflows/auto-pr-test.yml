@@ -1,0 +1,37 @@
+name: "auto-pr-test"
+
+# Policy-as-code PR gate (ADLC): tests, cross-family AI review under
+# .auto-pr-test/policy.yaml, tamper-evident evidence ledger.
+# Live only when the AUTO_PR_TEST_LIVE repository variable is "true"
+# and the model credentials below are set as repository secrets.
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  gate:
+    name: ADLC gate
+    if: vars.AUTO_PR_TEST_LIVE == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v7
+    - name: auto-pr-test
+      # Pinned by commit SHA (auto-pr-test main), never by tag.
+      # skip-tests: this job holds model credentials, so it must execute no code
+      # from the PR — no npm ci/build/test here. Tests are enforced by the
+      # required "Build & Test" check, which runs in a job with no secrets.
+      uses: Lanier-Developments/auto-pr-test@b8d2764e83a100b00a194f1d007d5a13569cf3c6
+      with:
+        skip-tests: "true"
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: us-east-1
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
